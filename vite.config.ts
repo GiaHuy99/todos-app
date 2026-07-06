@@ -10,11 +10,21 @@ const reactAppRoot = path.resolve(
 	"src/react-app",
 );
 
+const backendUrl = process.env.VITE_BACKEND_URL ?? "http://localhost:8080";
+
 export default defineConfig({
 	plugins: [react(), tailwindcss(), cloudflare()],
 	resolve: {
 		alias: {
 			"@": reactAppRoot,
+		},
+	},
+	server: {
+		proxy: {
+			"/api": {
+				target: backendUrl,
+				changeOrigin: true,
+			},
 		},
 	},
 });
