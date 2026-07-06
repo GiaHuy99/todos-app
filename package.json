@@ -12,9 +12,15 @@
 		"publish": true
 	},
 	"dependencies": {
+		"@tailwindcss/vite": "^4.3.2",
+		"axios": "^1.18.1",
 		"hono": "4.11.1",
+		"lucide-react": "^1.23.0",
 		"react": "19.2.1",
-		"react-dom": "19.2.1"
+		"react-dom": "19.2.1",
+		"react-router-dom": "^7.18.1",
+		"tailwindcss": "^4.3.2",
+		"zustand": "^5.0.14"
 	},
 	"devDependencies": {
 		"@cloudflare/vite-plugin": "1.15.3",
