@@ -1,90 +1,140 @@
-# React + Vite + Hono + Cloudflare Workers
+# todos-app (Frontend)
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/templates/tree/main/vite-react-template)
+Todo List Management web application — React SPA deployed on **Cloudflare Workers**, with a Hono edge proxy that forwards `/api/**` to the Spring Boot backend on AWS EC2.
 
-This template provides a minimal setup for building a React application with TypeScript and Vite, designed to run on Cloudflare Workers. It features hot module replacement, ESLint integration, and the flexibility of Workers deployments.
+**Live:** [https://todos-app.huykidbestboy1412.workers.dev](https://todos-app.huykidbestboy1412.workers.dev)
 
-![React + TypeScript + Vite + Cloudflare Workers](https://imagedelivery.net/wSMYJvS3Xw-n339CbDyDIA/fc7b4b62-442b-4769-641b-ad4422d74300/public)
+**Backend repo:** [todos-app-be](../todos-app-be)
 
-<!-- dash-content-start -->
+---
 
-🚀 Supercharge your web development with this powerful stack:
+## Stack
 
-- [**React**](https://react.dev/) - A modern UI library for building interactive interfaces
-- [**Vite**](https://vite.dev/) - Lightning-fast build tooling and development server
-- [**Hono**](https://hono.dev/) - Ultralight, modern backend framework
-- [**Cloudflare Workers**](https://developers.cloudflare.com/workers/) - Edge computing platform for global deployment
+| Layer | Technology |
+|---|---|
+| UI | React 19, TypeScript, Tailwind CSS 4 |
+| Build | Vite 7, `@cloudflare/vite-plugin` |
+| Edge | Cloudflare Workers, Hono |
+| HTTP client | Axios |
+| State | Zustand |
+| Routing | React Router 7 |
 
-### ✨ Key Features
+---
 
-- 🔥 Hot Module Replacement (HMR) for rapid development
-- 📦 TypeScript support out of the box
-- 🛠️ ESLint configuration included
-- ⚡ Zero-config deployment to Cloudflare's global network
-- 🎯 API routes with Hono's elegant routing
-- 🔄 Full-stack development setup
-- 🔎 Built-in Observability to monitor your Worker
+## Project structure
 
-Get started in minutes with local development or deploy directly via the Cloudflare dashboard. Perfect for building modern, performant web applications at the edge.
-
-<!-- dash-content-end -->
-
-## Getting Started
-
-To start a new project with this template, run:
-
-```bash
-npm create cloudflare@latest -- --template=cloudflare/templates/vite-react-template
+```
+todos-app/
+├── src/
+│   ├── react-app/          # React SPA
+│   │   ├── app/              # Router, providers, error boundary
+│   │   ├── features/todo/    # Todo feature (components, hooks, store, API)
+│   │   └── shared/           # Reusable UI, hooks, constants
+│   └── worker/
+│       └── index.ts          # Hono API proxy → EC2 backend
+├── docs/                     # Product & technical documentation
+├── wrangler.json             # Cloudflare Workers config (BACKEND_URL)
+├── vite.config.ts            # Vite dev proxy for local backend
+└── .env.development          # Local dev only (VITE_BACKEND_URL)
 ```
 
-A live deployment of this template is available at:
-[https://react-vite-template.templates.workers.dev](https://react-vite-template.templates.workers.dev)
+---
 
-## Development
+## Local development
 
-Install dependencies:
+Requires the backend running at `http://localhost:8080` (see [todos-app-be README](../todos-app-be/README.md)).
 
 ```bash
 npm install
-```
-
-Start the development server with:
-
-```bash
 npm run dev
 ```
 
-Your application will be available at [http://localhost:5173](http://localhost:5173).
+Open [http://localhost:5173](http://localhost:5173).
 
-## Production
+Vite proxies `/api` → `http://localhost:8080` (configured via `VITE_BACKEND_URL` in `.env.development`).
 
-Build your project for production:
+---
+
+## Production architecture
+
+```
+Browser
+  │  HTTPS  /api/todos
+  ▼
+Cloudflare Workers (this repo)
+  │  React static assets (dist/client)
+  │  Hono proxy /api/** → BACKEND_URL
+  ▼
+AWS EC2 — Spring Boot :8080
+  ▼
+AWS RDS MySQL
+```
+
+In production the React app calls **relative** `/api` paths. The Worker proxies them to the backend — no CORS or mixed-content issues in the browser.
+
+---
+
+## Deploy to Cloudflare
+
+1. Set the backend URL in `wrangler.json`:
+
+```json
+"vars": {
+  "BACKEND_URL": "http://<EC2_PUBLIC_DNS_OR_IP>:8080"
+}
+```
+
+2. Build and deploy:
 
 ```bash
 npm run build
+npm run deploy
 ```
 
-Preview your build locally:
+3. Verify:
 
 ```bash
-npm run preview
+curl "https://todos-app.huykidbestboy1412.workers.dev/api/todos?page=0&size=10"
 ```
 
-Deploy your project to Cloudflare Workers:
+### Worker proxy notes
 
-```bash
-npm run build && npm run deploy
-```
+- Route pattern: `/api/**` (covers nested paths like `/api/todos/1`)
+- Strips `host`, `origin`, and `referer` headers before forwarding (prevents Cloudflare Error 1003)
+- `BACKEND_URL` must be the **EC2 public hostname or IP**, not the Workers domain
 
-Monitor your workers:
+---
 
-```bash
-npx wrangler tail
-```
+## Environment variables
 
-## Additional Resources
+| Variable | Where | Purpose |
+|---|---|---|
+| `VITE_BACKEND_URL` | `.env.development` | Vite dev proxy target (local only) |
+| `VITE_API_BASE_URL` | Optional build-time | Override API base URL (default: `/api`) |
+| `BACKEND_URL` | `wrangler.json` | EC2 backend URL for Worker proxy (production) |
 
-- [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
-- [Vite Documentation](https://vitejs.dev/guide/)
-- [React Documentation](https://reactjs.org/)
-- [Hono Documentation](https://hono.dev/)
+`.env.development` is **not** used in Cloudflare production builds.
+
+---
+
+## Scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start Vite dev server with HMR |
+| `npm run build` | Type-check + production build |
+| `npm run deploy` | Deploy to Cloudflare Workers |
+| `npm run lint` | ESLint |
+| `npm run cf-typegen` | Regenerate Worker env types |
+
+---
+
+## Documentation
+
+| Document | Description |
+|---|---|
+| [docs/PRD.md](./docs/PRD.md) | Product requirements |
+| [docs/Technical-Design.md](./docs/Technical-Design.md) | Frontend & Worker architecture |
+| [docs/DESIGN.md](./docs/DESIGN.md) | UI design system |
+
+Backend API and deployment docs live in the [todos-app-be](../todos-app-be) repository.
