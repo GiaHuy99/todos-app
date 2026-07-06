@@ -6,8 +6,7 @@
 |---|---|
 | **Product** | Todo List Management Web Application |
 | **Version** | 1.1 |
-| **Status** | Deployed |
-| **Repository** | `todos-app` (frontend) |
+| **Status** | Complete |
 | **Audience** | Intern Full-Stack Developer Coding Assessment |
 | **Design Reference** | [`DESIGN.md`](./DESIGN.md) |
 
@@ -244,13 +243,12 @@ TodoCard, TodoList, TodoForm, SearchBar, FilterDropdown, FloatingAddButton, Pagi
 
 ## 12. Assumptions & Dependencies
 
-- Frontend: React 19, Vite 7, Tailwind CSS 4, React Router, Axios, Lucide React, Zustand
-- Deployed on **Cloudflare Workers** with Hono edge proxy for `/api/**`
-- Backend: Spring Boot REST API ([todos-app-be](../../todos-app-be)), hosted on **AWS EC2 + RDS MySQL**
-- Design system is defined in [`DESIGN.md`](./DESIGN.md)
-- **Local dev:** Vite proxy forwards `/api` → `http://localhost:8080`
-- **Production:** React calls relative `/api`; Cloudflare Worker proxies to EC2 (`BACKEND_URL` in `wrangler.json`)
-- No authentication is required for MVP
+- **Frontend:** React 19, Vite 7, Tailwind CSS 4, React Router, Axios, Lucide React, Zustand, Cloudflare Workers, Hono
+- **Backend:** Spring Boot 4, Spring Data JPA, MySQL ([todos-app-be](../../todos-app-be))
+- Design system: [`DESIGN.md`](./DESIGN.md)
+- **Local dev:** Vite proxy `/api` → `http://localhost:8080`
+- **Production:** Relative `/api` paths proxied by edge Worker to backend
+- No authentication for MVP
 
 ---
 
@@ -282,4 +280,4 @@ TodoCard, TodoList, TodoForm, SearchBar, FilterDropdown, FloatingAddButton, Pagi
 
 - [`DESIGN.md`](./DESIGN.md) — Design system and visual language
 - [`Technical-Design.md`](./Technical-Design.md) — Frontend & Worker architecture
-- [todos-app-be/docs/Technical-Design.md](../../todos-app-be/docs/Technical-Design.md) — REST API, database, Docker, AWS deployment
+- [todos-app-be/docs/Technical-Design.md](../../todos-app-be/docs/Technical-Design.md) — REST API & backend architecture
