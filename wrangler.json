@@ -9,7 +9,7 @@
 	},
 	"upload_source_maps": true,
 	"vars": {
-		"BACKEND_URL": "http://3.84.174.239:8080"
+		"BACKEND_URL": "http://ec2-3-84-174-239.compute-1.amazonaws.com:8080"
 	},
 	"assets": {
 		"directory": "./dist/client",
